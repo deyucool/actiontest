@@ -1,0 +1,37 @@
+javaweb简单框架使用说明
+
+1.ajax调用方式
+$.ajax({url:"comAction.do",
+				type: "POST",
+				data: {service:"TestService",method:"getpwd",userid:"U00001"},
+				dataType: "json",
+				async : true,
+				success: function( data ) {
+					console.log(data);
+				}
+			});
+      
+ service为类名，method为类中方法名
+ 
+ 2.服务写法
+ @BSOMethod(Method="getpwd")  //通过注解调用该方法
+	public  void doGetPwd(BizMessage Msg,DataConnection dbLink) {  //BizMessage为消息体类，DataConnection为数据库连接
+		MsgManager MsgPut = Msg.getBusinessParameters();
+		
+		String userid = MsgPut.AsString("userid");
+		String pwd = "";
+		
+		String sql = "select * from p_user where username = ? ";
+		ResultSet rs = bizUtils.QueryPreparedSql(dbLink,sql,userid);
+        try {
+			while(rs.next()){
+				pwd=rs.getString("pwd");
+			}
+			
+			MsgPut.setString(ConstColumn.RET_CODE, ConstColumn.ONE); //向前台返回结果，事json格式
+	        MsgPut.setString(ConstColumn.JSON, pwd);
+		} catch (SQLException e) {
+			MsgPut.setString(ConstColumn.RET_CODE, ConstColumn.ZERO);
+			e.printStackTrace();
+		}
+	}
